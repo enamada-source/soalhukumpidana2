@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Tryout Online CAT - UU No. 1 Tahun 2023</title>
+    <!-- Tailwind CSS untuk Desain Modern & Responsive -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome untuk Ikon Modern -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Mammoth.js untuk membaca file .docx tambahan secara offline -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        .sticky-timer {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <!-- ==================== 1. HALAMAN PEMBUKA / DASHBOARD ==================== -->
+    <div id="landing-page" class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl max-w-2xl w-full border border-slate-100 text-center">
+            <div class="w-20 h-20 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 text-3xl shadow-lg shadow-blue-200">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">TRYOUT ONLINE</h1>
+            <p class="text-slate-500 mb-6">Sistem Computer Assisted Test (CAT) - Bank Soal UU No. 1 Tahun 2023 Terintegrasi</p>
+            
+            <!-- Informasi Berkas Terintegrasi -->
+            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100 text-left mb-6 flex items-start gap-3">
+                <div class="text-emerald-600 text-xl mt-0.5"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                    <h4 class="font-bold text-emerald-900 text-sm">Dokumen Berhasil Dimuat Terintegrasi</h4>
+                    <p class="text-xs text-emerald-700 mt-0.5">
+                        Sebanyak 86 butir soal materi Hukum Pidana Nasional & Paradigma Baru KUHP dari berkas Anda telah dimasukkan langsung ke dalam sistem. Anda juga masih dapat memperbarui bank soal dengan mengunggah berkas baru di bawah jika diperlukan.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Fitur Tambahan Import Berkas Baru -->
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 text-left mb-6">
+                <label class="block text-xs font-bold text-blue-900 uppercase tracking-wider mb-2"><i class="fa-solid fa-file-import"></i> Perbarui Berkas Soal Baru (Opsional) :</label>
+                <input type="file" id="file-input" accept=".docx,.txt" class="block w-full text-xs text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
+                <div id="file-status" class="text-xs mt-1 text-slate-500">Menggunakan 86 Soal Bawaan Dokumen Utama.</div>
+            </div>
+
+            <!-- Informasi Ujian -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div class="text-xs text-slate-400 font-medium mb-1">JUMLAH SOAL</div>
+                    <div id="info-total-soal" class="text-xl font-bold text-slate-700">86 Soal</div>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div class="text-xs text-slate-400 font-medium mb-1">DURASI</div>
+                    <div class="text-xl font-bold text-slate-700">90 Menit</div>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div class="text-xs text-slate-400 font-medium mb-1">PENILAIAN</div>
+                    <div class="text-xl font-bold text-slate-700">Otomatis</div>
+                </div>
+            </div>
+
+            <!-- Nama Peserta -->
+            <div class="mb-6 text-left">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Nama Peserta :</label>
+                <input type="text" id="username" value="Peserta Tryout" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+            </div>
+
+            <button id="btn-start" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all duration-200 cursor-pointer text-lg">
+                Mulai Ujian <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ==================== 2. HALAMAN UTAMA UJIAN (CAT INTERFACE) ==================== -->
+    <div id="exam-page" class="hidden min-h-screen flex flex-col">
+        <!-- Sticky Header (Timer & Info) -->
+        <header class="sticky-timer bg-white border-b border-slate-200 shadow-sm px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold text-sm tracking-wider">CAT SYSTEM</span>
+                <h2 class="font-bold text-slate-800" id="exam-user-display">Peserta: -</h2>
+            </div>
+            
+            <!-- Timer Display -->
+            <div id="timer-container" class="flex items-center gap-3 bg-slate-100 px-5 py-2.5 rounded-xl border border-slate-200 transition-all">
+                <i class="fa-regular fa-clock text-xl text-slate-500" id="timer-icon"></i>
+                <span id="timer" class="font-mono text-2xl font-bold text-slate-700">90:00</span>
+            </div>
+
+            <button onclick="confirmEndExam()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2">
+                <i class="fa-solid fa-stop-circle"></i> Selesai Ujian
+            </button>
+        </header>
+
+        <!-- Main Workspace -->
+        <div class="flex-1 flex flex-col md:flex-row">
+            <!-- Sisi Kiri: Konten Soal -->
+            <main class="flex-1 p-6 md:p-8 flex flex-col justify-between">
+                <div class="max-w-3xl w-full mx-auto">
+                    <!-- Kotak Soal -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <span class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                                SOAL NOMOR <span id="current-question-num">1</span>
+                            </span>
+                        </div>
+                        
+                        <!-- Teks Soal -->
+                        <p id="question-text" class="text-lg text-slate-800 font-medium leading-relaxed mb-8">
+                            Memuat butir soal...
+                        </p>
+
+                        <!-- Pilihan Jawaban (A, B, C, D) -->
+                        <div class="space-y-3" id="options-container"></div>
+                    </div>
+                </div>
+
+                <!-- Navigasi Bawah Soal -->
+                <div class="max-w-3xl w-full mx-auto flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-6">
+                    <div class="flex gap-3">
+                        <button onclick="prevQuestion()" id="btn-prev" class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition flex items-center gap-2">
+                            <i class="fa-solid fa-chevron-left"></i> Sebelumnya
+                        </button>
+                        <button onclick="toggleDoubtful()" id="btn-doubt" class="px-5 py-2.5 bg-amber-50 border border-amber-300 text-amber-700 font-semibold rounded-xl hover:bg-amber-100 transition flex items-center gap-2">
+                            <i class="fa-regular fa-flag"></i> Ragu-Ragu
+                        </button>
+                    </div>
+                    <button onclick="nextQuestion()" id="btn-next" class="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-md shadow-blue-100 transition flex items-center gap-2">
+                        Selanjutnya <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </main>
+
+            <!-- Sisi Kanan: Sidebar Navigasi Nomor Soal -->
+            <aside class="w-full md:w-80 bg-white border-t md:border-t-0 md:border-l border-slate-200 p-6 flex flex-col justify-between gap-6 overflow-y-auto">
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-th"></i> Navigasi Soal
+                    </h3>
+                    
+                    <!-- Grid Nomor Soal -->
+                    <div id="nav-grid" class="grid grid-cols-5 gap-2 max-h-[250px] overflow-y-auto p-1"></div>
+
+                    <!-- Petunjuk Warna -->
+                    <div class="mt-4 pt-4 border-t border-slate-100 space-y-1.5 text-xs font-medium text-slate-500">
+                        <div class="flex items-center gap-2">
+                            <span class="w-4 h-4 rounded bg-slate-100 border border-slate-300 block"></span> Belum dijawab
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-4 h-4 rounded bg-blue-600 block"></span> Sudah dijawab
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-4 h-4 rounded bg-amber-400 block"></span> Ragu-ragu
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+
+    <!-- ==================== 3. HALAMAN HASIL & PEMBAHASAN ==================== -->
+    <div id="result-page" class="hidden min-h-screen bg-slate-50 p-6 md:p-12">
+        <div class="max-w-4xl w-full mx-auto bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden" id="printable-area">
+            
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 text-white text-center">
+                <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <i class="fa-solid fa-square-poll-vertical"></i>
+                </div>
+                <h2 class="text-2xl font-bold mb-1">HASIL UJIAN RESMI</h2>
+                <p class="text-blue-100 text-sm">Laporan Evaluasi Tryout Online Computer Assisted Test</p>
+            </div>
+
+            <div class="p-6 md:p-8 border-b border-slate-100 grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Informasi Peserta</h3>
+                    <table class="w-full text-sm">
+                        <tr class="border-b border-slate-100"><td class="py-2 text-slate-500 W-36">Nama</td><td class="py-2 font-bold text-slate-800" id="res-nama">-</td></tr>
+                        <tr class="border-b border-slate-100"><td class="py-2 text-slate-500">Tanggal Ujian</td><td class="py-2 font-medium text-slate-800" id="res-tanggal">-</td></tr>
+                        <tr><td class="py-2 text-slate-500">Durasi Pengerjaan</td><td class="py-2 font-medium text-slate-800" id="res-durasi">-</td></tr>
+                    </table>
+                </div>
+                <div class="flex flex-col items-center justify-center bg-slate-50 rounded-2xl p-6 border border-slate-200">
+                    <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">NILAI AKHIR</div>
+                    <div class="text-5xl font-extrabold text-blue-600" id="res-nilai">00.0</div>
+                </div>
+            </div>
+
+            <div class="p-6 md:p-8 bg-slate-50/50 border-b border-slate-100 grid grid-cols-3 gap-4 text-center">
+                <div class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                    <div class="text-green-600 text-xl mb-1"><i class="fa-solid fa-circle-check"></i></div>
+                    <div class="text-2xl font-bold text-slate-800" id="res-benar">0</div>
+                    <div class="text-xs font-medium text-slate-400">Jawaban Benar</div>
+                </div>
+                <div class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                    <div class="text-red-500 text-xl mb-1"><i class="fa-solid fa-circle-xmark"></i></div>
+                    <div class="text-2xl font-bold text-slate-800" id="res-salah">0</div>
+                    <div class="text-xs font-medium text-slate-400">Jawaban Salah</div>
+                </div>
+                <div class="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                    <div class="text-slate-400 text-xl mb-1"><i class="fa-solid fa-circle-minus"></i></div>
+                    <div class="text-2xl font-bold text-slate-800" id="res-kosong">0</div>
+                    <div class="text-xs font-medium text-slate-400">Tidak Dijawab</div>
+                </div>
+            </div>
+
+            <div class="p-6 bg-white border-b border-slate-100 flex flex-wrap gap-3 justify-center no-print">
+                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm text-sm">
+                    <i class="fa-solid fa-print"></i> Cetak / Simpan PDF
+                </button>
+                <button onclick="downloadJsonReport()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-sm text-sm">
+                    <i class="fa-solid fa-download"></i> Unduh Rekap Data (JSON)
+                </button>
+                <button onclick="restartApp()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-5 py-2.5 rounded-xl transition flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-rotate-left"></i> Mulai Ulang Aplikasi
+                </button>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <h3 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-book-open text-blue-600"></i> Analisis & Review Pembahasan
+                </h3>
+                <div id="review-container" class="space-y-6"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // =========================================================================
+        // DATA BASE BANK SOAL TERINTEGRASI (86 BUTIR SOAL MATERI HUKUM PIDANA / KUHP BARU)
+        // =========================================================================
+        let questions = [
+            {
+                text: "Pasal manakah dalam UU No. 1/2023 (KUHP Baru) yang mengatur alasan pembenar bahwa seseorang tidak dapat dipidana jika melakukan perbuatan untuk \"melaksanakan ketentuan peraturan perundang-undangan\"? (soal tambahan: sebutkan apa saja alasan pembenar dan termasuk unsur apakah alasan pembenar itu?)",
+                options: { A: "Pasal 30 UU 1/2023", B: "Pasal 31 UU 1/2023", C: "Pasal 32 UU 1/2023", D: "Pasal 33 UU 1/2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Perbuatan pidana tidak dapat dijatuhi hukuman jika dilakukan untuk melaksanakan \"perintah jabatan yang sah dari pejabat yang berwenang\". Hal ini diatur dalam...",
+                options: { A: "Pasal 31 UU Nomor 1 Tahun 2023", B: "Pasal 32 UU Nomor 1 Tahun 2023", C: "Pasal 33 UU Nomor 1 Tahun 2023", D: "Pasal 34 UU Nomor 1 Tahun 2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Manakah pasal dalam UU No. 1/2023 yang mengatur tentang \"keadaan darurat\" (overmacht/noodtoestand) sebagai salah satu alasan pembenar?",
+                options: { A: "Pasal 31 UU 1/2023", B: "Pasal 32 UU 1/2023", C: "Pasal 33 UU 1/2023", D: "Pasal 34 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Pasal dalam UU No. 1/2023 yang mengatur tentang \"pembelaan terpaksa (noodweer)\" demi melindungi diri, orang lain, kehormatan, atau harta benda dari ancaman seketika yang melawan hukum adalah...",
+                options: { A: "Pasal 31 UU 1/2023", B: "Pasal 32 UU 1/2023", C: "Pasal 33 UU 1/2023", D: "Pasal 34 UU 1/2023" },
+                correctAnswer: "D"
+            },
+            {
+                text: "Pasal berapakah dalam UU Nomor 1 Tahun 2023 (KUHP Baru) yang mengatur tentang alasan pembenar berupa ketiadaan sifat melawan hukum?",
+                options: { A: "Pasal 33 UU 1/2023", B: "Pasal 34 UU 1/2023", C: "Pasal 35 UU 1/2023", D: "Pasal 36 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Prinsip dasar dalam hukum pidana nasional yang baru menentukan bahwa setiap orang hanya dapat dimintai pertanggungjawaban atas tindak pidana yang dilakukan dengan sengaja atau karena kealpaan, di mana tindak pidana akibat kealpaan hanya bisa dipidana jika secara tegas ditentukan dalam undang-undang. Ketentuan mengenai “asas pertanggungjawaban pidana berdasarkan kesalahan (kesengajaan atau kealpaan)” tersebut diatur dalam UU Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana, tepatnya pada...",
+                options: { A: "Pasal 34 UU 1/2023", B: "Pasal 35 UU 1/2023", C: "Pasal 36 UU 1/2023", D: "Pasal 37 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Alasan pembenar dalam hukum pidana Fokus utamanya adalah pada perbuatannya itu sendiri (situasi dan keadaan yang melatarbelakangi perbuatan) untuk menghilangkan sifat melawan hukum dari suatu tindakan. Berdasarkan pernyataan tersebut, alasan pembenar berfokus dan berkaitan pada… (Soal tambahan: unsur objektif terdiri dari apa saja)",
+                options: { A: "Unsur Subjektif", B: "Unsur Objektif", C: "Unsur Pemaaf", D: "Unsur Kesalahan" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Mengatur tentang “ketidakmampuan bertanggung jawab bagi penyandang disabilitas mental” (Alasan Pemaaf) dalam keadaan kekambuhan akut disertai gambaran psikotik, dan/atau penyandang disabilitas intelektual derajat sedang atau berat, di mana pelaku dengan kondisi ini tidak dapat dipidana melainkan hanya dapat dikenakan tindakan, merupakan bunyi ketentuan yang diatur dalam...",
+                options: { A: "Pasal 39 UU No. 1 Tahun 2023", B: "Pasal 44 UU No. 1 Tahun 2023", C: "Pasal 39 UU No. 8 Tahun 2016", D: "Pasal 44 KUHP Lama (WvS)" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Berdasarkan ketentuan hukum terbaru di Indonesia, terdapat batas usia minimum anak yang dapat dipertanggungjawabkan secara pidana. Secara spesifik, ditetapkan bahwa “pertanggungjawaban pidana tidak dapat dikenakan terhadap anak yang pada waktu melakukan tindak pidana belum berumur 12 (dua belas) tahun” (Alasan Pemaaf). Ketentuan tersebut diatur dalam… (soal tambahan: sebutkan apa saja alasan pemaaf dan termasuk unsur apakah alasan pemaaf itu?)",
+                options: { A: "Pasal 41 UU Nomor 1 Tahun 2023", B: "Pasal 40 UU Nomor 1 Tahun 2023", C: "Pasal 43 UU Nomor 1 Tahun 2023", D: "Pasal 21 UU Nomor 1 Tahun 2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Alasan pemaaf yang dikenal dengan istilah “daya paksa (overmacht)” dapat membebaskan seseorang dari hukuman pidana jika tindak pidana yang dilakukan terjadi karena adanya keadaan yang memaksa. Di dalam Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana (KUHP Baru), ketentuan mengenai “daya paksa” ini diatur dalam...",
+                options: { A: "Pasal 40 UU 1/2023", B: "Pasal 41 UU 1/2023", C: "Pasal 42 UU 1/2023", D: "Pasal 43 UU 1/2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Seseorang yang melakukan “pembelaan diri secara berlebihan hingga melampaui batas (noodweer exces) akibat keguncangan jiwa” yang hebat—karena adanya serangan atau ancaman seketika yang melawan hukum—tidak dapat dipidana karena alasan pemaaf. Ketentuan mengenai pembelaan terpaksa yang melampaui batas ini diatur dalam...",
+                options: { A: "Pasal 41 UU No. 1 Tahun 2023", B: "Pasal 42 UU No. 1 Tahun 2023", C: "Pasal 43 UU No. 1 Tahun 2023", D: "Pasal 44 UU No. 1 Tahun 2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Seseorang yang melakukan “tindak pidana atas perintah jabatan yang diberikan tanpa wewenang” tidak dapat dipidana (dihapus pidananya), asalkan “pelaku beritikad baik mengira perintah itu berwenang dan pelaksanaannya termasuk dalam lingkup pekerjaannya”. Ketentuan mengenai alasan pemaaf terkait perintah jabatan tanpa wewenang ini diatur dalam...",
+                options: { A: "Pasal 40 UU Nomor 1 Tahun 2023", B: "Pasal 42 UU Nomor 1 Tahun 2023", C: "Pasal 44 UU Nomor 1 Tahun 2023", D: "Pasal 46 UU Nomor 1 Tahun 2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Dalam hukum pidana, terdapat alasan pemaaf yang dapat menghapuskan kesalahan (mens rea) pelaku, meskipun perbuatannya sendiri tetap bersifat melawan hukum. Jika alasan pemaaf tersebut didasarkan pada kondisi kejiwaan atau keadaan batin tertentu yang membuat pelaku tidak mampu mempertanggungjawabkan perbuatannya, maka alasan pemaaf tersebut dinilai berdasarkan… (Soal tambahan: unsur subjektif terdiri dari apa saja)",
+                options: { A: "Unsur objektif", B: "Unsur subjektif", C: "Unsur materiil", D: "Unsur formil" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Pasal berapakah dalam Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana yang mengatur mengenai “ketentuan dan jangka waktu penerapan pidana penjara”? (Soal Tambaan: Jelaskan Pidana Penjara)",
+                options: { A: "Pasal 58 UU 1/2023", B: "Pasal 68 UU 1/2023", C: "Pasal 78 UU 1/2023", D: "Pasal 88 UU 1/2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Pasal berapakah dalam Undang-Undang Nomor 1 Tahun 2023 (KUHP Baru) yang mengatur tentang “mekanisme perubahan atau konversi pidana penjara seumur hidup menjadi pidana penjara untuk waktu tertentu selama 20 tahun”?",
+                options: { A: "Pasal 67 UU 1/2023", B: "Pasal 68 UU 1/2023", C: "Pasal 69 UU 1/2023", D: "Pasal 70 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Berdasarkan Pasal 70 UU No. 1 Tahun 2023 tentang KUHP, bagaimanakah prinsip penjatuhan pidana penjara yang diatur di dalamnya?",
+                options: {
+                    A: "Pidana penjara harus menjadi pilihan utama dan pertama untuk semua jenis tindak pidana guna memberikan efek jera maksimal bagi pelaku.",
+                    B: "Hakim diinstruksikan untuk selalu menjatuhkan pidana penjara tanpa memedulikan apakah tujuan pemidanaan dapat dicapai melalui jenis pidana lain atau tidak.",
+                    C: "Pidana penjara ditempatkan sebagai langkah terakhir (ultimum remedium), di mana hakim diinstruksikan untuk menghindarinya jika tujuan pemidanaan dapat dicapai melalui jenis pidana lain.",
+                    D: "Penjatuhan pidana penjara sepenuhnya dihapuskan dan digantikan dengan pidana denda atau kerja sosial untuk seluruh jenis pelanggaran hukum."
+                },
+                correctAnswer: "C"
+            },
+            {
+                text: "Dalam Kitab Undang-Undang Hukum Pidana (KUHP) yang baru, “hakim diberikan kewenangan untuk mensubstitusi atau mengganti pidana penjara menjadi pidana denda bagi pelaku tindak pidana ringan yang ancaman penjara di bawah 5 (lima) tahun”. Ketentuan mengenai kewenangan substitusi pidana ini diatur di dalam...",
+                options: { A: "Pasal 54 UU No. 1 Tahun 2023", B: "Pasal 65 UU No. 1 Tahun 2023", C: "Pasal 71 UU No. 1 Tahun 2023", D: "Pasal 82 UU No. 1 Tahun 2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "pidana kerja sosial merupakan bentuk-bentuk pidana pokok yang diatur dalam Kitab Undang-Undang Hukum Pidana (KUHP) yang baru. Pasal manakah dalam UU No. 1 Tahun 2023 tentang KUHP yang secara spesifik mengatur mengenai ketentuan Pidana Tutupan? (Soal Tambahan : Jelaskan tentang Pidana Tutupan 3P)",
+                options: { A: "Pasal 65 UU 1/2023", B: "Pasal 71 UU 1/2023", C: "Pasal 74 UU 1/2023", D: "Pasal 82 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Menurut Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana (KUHP Baru), pelaku tindak pidana yang diancam dengan pidana penjara maksimal 5 (lima) tahun dapat dijatuhi pidana pengawasan sebagai alternatif hukuman penjara. Ketentuan mengenai Pidana Pengawasan ini diatur dalam… (Soal Tambahan: Jelaskan tentang Pidana Pengawasan)",
+                options: { A: "Pasal 65 UU 1/2023", B: "Pasal 70 UU 1/2023", C: "Pasal 75 UU 1/2023", D: "Pasal 80 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Menurut Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana (KUHP Baru), ketentuan yang mengatur bahwa pidana pengawasan dijatuhkan paling lama sama dengan pidana penjara yang diancamkan, serta khusus diterapkan pada tindak pidana dengan ancaman pidana penjara paling lama lima tahun, diatur dalam...",
+                options: { A: "Pasal 74 UU 1/2023", B: "Pasal 75 UU 1/2023", C: "Pasal 76 UU 1/2023", D: "Pasal 77 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Ketentuan yang mengatur mengenai pencabutan pidana pengawasan dan penerapan pidana penjara, di mana apabila seorang terpidana melanggar syarat umum selama menjalani masa pidana pengawasan maka pidana pengawasan tersebut dicabut dan terpidana wajib menjalani pidana penjara, diatur dalam...",
+                options: { A: "Pasal 75 UU No. 1 Tahun 2023", B: "Pasal 76 UU No. 1 Tahun 2023", C: "Pasal 77 UU No. 1 Tahun 2023", D: "Pasal 78 UU No. 1 Tahun 2023" },
+                correctAnswer: "D"
+            },
+            {
+                text: "Dalam Kitab Undang-Undang Hukum Pidana (KUHP) yang baru, perumusan pidana denda mengalami pembaruan dengan mengaturnya ke dalam 8 (delapan) kategori yang bersifat baku untuk memudahkan penyesuaian nilai jika terjadi perubahan ekonomi dan moneter. Ketentuan mengenai klasifikasi batas maksimum pidana denda tersebut diatur dalam… (Soal Tambahan: Jelaskan Pidana Denda)",
+                options: { A: "Pasal 79 UU No. 1 Tahun 2023", B: "Pasal 80 UU No. 1 Tahun 2023", C: "Pasal 81 UU No. 1 Tahun 2023", D: "Pasal 82 UU No. 1 Tahun 2023" },
+                correctAnswer: "A"
+            },
+            {
+                text: "Jika penyitaan dan pelelangan kekayaan atau pendapatan terpidana tidak cukup atau tidak memungkinkan untuk membayar denda yang dijatuhkan, maka berlaku ketentuan penggantian pidana denda dengan pidana penjara. Ketentuan mengenai konversi pidana denda menjadi pidana penjara tersebut diatur dalam...",
+                options: { A: "Pasal 80 UU No. 1 Tahun 2023", B: "Pasal 81 UU No. 1 Tahun 2023", C: "Pasal 82 UU No. 1 Tahun 2023", D: "Pasal 83 UU No. 1 Tahun 2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Ketentuan yang mengatur tentang pidana kerja sosial sebagai alternatif pemidanaan bagi pelaku tindak pidana ringan, yang menjadi salah satu bentuk pergeseran paradigma hukum menuju keadilan restoratif (restorative justice) and rehabilitatif, diatur dalam… (Soal Tambahan: Jelaskan Pidana Kerja Sosial !)",
+                options: { A: "Pasal 65 UU No. 1 Tahun 2023", B: "Pasal 75 UU No. 1 Tahun 2023", C: "Pasal 85 UU No. 1 Tahun 2023", D: "Pasal 95 UU No. 1 Tahun 2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Pasal dalam Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana (KUHP Baru) yang mengatur mengenai jenis-jenis pidana tambahan yang dapat dijatuhkan oleh hakim apabila penjatuhan pidana pokok saja tidak cukup untuk mencapai tujuan pemidanaan adalah… (Soal Tambahan: sebutkan jenis-jenis pidana tambahan)",
+                options: { A: "Pasal 64 UU 1/2023", B: "Pasal 65 UU 1/2023", C: "Pasal 66 UU 1/2023", D: "Pasal 67 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Pasal dalam Undang-Undang Nomor 1 Tahun 2023 yang mengatur tentang penyertaan dalam tindak pidana (deelneming), yang menetapkan bahwa setiap orang yang terlibat dalam suatu tindak pidana dapat dipidana sebagai pelaku apabila mereka melakukan tindakan tertentu, adalah… (Soal Tambahan: Jelaskan deelneming apa-apa saja?)",
+                options: { A: "Pasal 18 UU 1/2023", B: "Pasal 19 UU 1/2023", C: "Pasal 20 UU 1/2023", D: "Pasal 21 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Di dalam Kitab Undang-Undang Hukum Pidana (KUHP) yang baru, pengaturan mengenai ketentuan umum penyertaan (deelneming) mengalami restrukturisasi pasal. Jika seseorang dengan sengaja memberi kesempatan, sarana, atau keterangan untuk melakukan tindak pidana, maka ketentuan mengenai pembantu kejahatan tersebut secara spesifik diatur dalam… (SOAL TAMBAHAN: DDMU - Jelaskan apa saja Deelneming)",
+                options: { A: "Pasal 20 UU Nomor 1 Tahun 2023", B: "Pasal 21 UU Nomor 1 Tahun 2023", C: "Pasal 22 UU Nomor 1 Tahun 2023", D: "Pasal 55 UU KUHP Lama (WvS)" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Pasal dalam UU No. 1 Tahun 2023 yang mengatur bahwa keadaan pribadi pelaku atau pembantu tindak pidana dapat menjadi alasan yang menghapus, mengurangi, atau memberatkan pidana yang dijatuhkan hanya berlaku bagi pelaku atau pembantu yang bersangkutan adalah...",
+                options: { A: "Pasal 20 UU 1/2023", B: "Pasal 21 UU 1/2023", C: "Pasal 22 UU 1/2023", D: "Pasal 23 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Menurut ketentuan hukum pidana terbaru di Indonesia, seseorang dianggap sebagai residivis apabila melakukan kejahatan kembali dalam kurun waktu 5 tahun setelah menjalani hukuman, atau saat kewajiban menjalani pidana pokok dari perkara terdahulu belum kedaluwarsa. Ketentuan mengenai pengulangan tindak pidana (residivis) ini secara umum diatur dalam...",
+                options: { A: "Pasal 21 UU No. 1 Tahun 2023", B: "Pasal 22 UU No. 1 Tahun 2023", C: "Pasal 23 UU No. 1 Tahun 2023", D: "Pasal 24 UU No. 1 Tahun 2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Dalam hukum pidana, terdapat bentuk penyertaan di mana seseorang melakukan suatu tindak pidana tidak secara langsung, melainkan dengan cara menggunakan orang lain sebagai alat (instrumen). Orang yang disuruh melakukan tindakan tersebut tidak dapat dihukum karena alasan tertentu—seperti mengalami gangguan jiwa, anak di bawah umur, atau berada di bawah paksaan (overmacht)—sehingga hanya pihak yang menyuruh (pelaku intelektual) yang dapat dipidana. Konsep penyertaan ini dikenal dengan istilah...",
+                options: {
+                    A: "Medepleger (Orang yang turut serta melakukan tindak pidana bersama orang lain dengan kesadaran dan kerja sama yang erat)",
+                    B: "Doenpleger (Orang yang melakukan tindak pidana dengan menggunakan orang lain sebagai alat yang tidak dapat dihukum, sehingga hanya pelaku intelektual yang dipidana)",
+                    C: "Uitlokker (Orang yang menggerakkan orang lain untuk melakukan tindak pidana dengan menggunakan sarana-sarana yang ditentukan undang-undang secara melawan hukum)",
+                    D: "Medeplichtige (Orang yang dengan sengaja memberikan bantuan atau sarana pada waktu atau sebelum tindak pidana itu dilakukan)"
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam hukum pidana, pihak yang bekerja sama secara sadar dan ikut serta secara fisik dalam pelaksanaan suatu perbuatan pidana bersama pelaku utama (pleger) disebut sebagai...",
+                options: { A: "Dader", B: "Medepleger", C: "Uitlokker", D: "Doenpleger" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Orang yang menggerakkan orang lain untuk melakukan suatu tindak pidana dengan menggunakan cara-cara tertentu—seperti memberi hadiah, janji, menyalahgunakan kekuasaan, menggunakan kekerasan, atau memberikan kesempatan—di mana baik penggerak maupun pelaku materiilnya sama-sama dapat dimintai pertanggungjawaban pidana, disebut sebagai...",
+                options: { A: "Pleger", B: "Doenpleger", C: "Uitlokker", D: "Medepleger" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Pasal dalam Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana yang secara khusus mengatur mengenai syarat-syarat pemidanaan terhadap suatu korporasi adalah… (Soal Tambahan : P P U P (PengPekUnPer))",
+                options: { A: "Pasal 45 UU 1/2023", B: "Pasal 46 UU 1/2023", C: "Pasal 47 UU 1/2023", D: "Pasal 48 UU 1/2023" },
+                correctAnswer: "D"
+            },
+            {
+                text: "Pasal dalam KUHP Baru (Undang-Undang Nomor 1 Tahun 2023) yang mengatur tentang alasan pembenar yang dapat diajukan atas nama Korporasi apabila individu yang melakukan tindak pidana “memiliki kedudukan fungsional dan bertindak untuk, atas nama, atau demi kepentingan korporasi dalam lingkup usahanya” adalah… (Soal Tambahan: Jelaskan alasan Pembenar dan Alasan Pemaaf KORPORASI)",
+                options: { A: "Pasal 45 UU 1/2023", B: "Pasal 48 UU 1/2023", C: "Pasal 50 UU 1/2023", D: "Pasal 52 UU 1/2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Pedoman hukum yang mengatur tata cara penanganan tindak pidana yang dilakukan oleh korporasi, memuat mekanisme pemanggilan, pemeriksaan, tata cara penjatuhan pidana, serta pedoman bagi hakim dalam menetapkan kesalahan dan hukuman bagi entitas korporasi adalah...",
+                options: { A: "Peraturan Mahkamah Agung (PERMA) Nomor 1 Tahun 2016", B: "Peraturan Mahkamah Agung (PERMA) Nomor 2 Tahun 2016", C: "Peraturan Mahkamah Agung (PERMA) Nomor 13 Tahun 2016", D: "Peraturan Mahkamah Agung (PERMA) Nomor 13 Tahun 2018" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Pasal berapakah dalam KUHP Baru (UU No. 1 Tahun 2023) yang mengatur tentang korporasi sebagai subjek hukum pidana, serta menegaskan bahwa korporasi dapat dimintai pertanggungjawaban dan dijatuhi sanksi pidana?",
+                options: { A: "Pasal 35 dalam KUHP Baru (UU No. 1 Tahun 2023)", B: "Pasal 40 dalam KUHP Baru (UU No. 1 Tahun 2023)", C: "Pasal 45 dalam KUHP Baru (UU No. 1 Tahun 2023)", D: "Pasal 50 dalam KUHP Baru (UU No. 1 Tahun 2023)" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Pasal dalam UU No. 1 Tahun 2023 (KUHP Baru) yang mengatur mengenai jenis-jenis pidana tambahan yang dapat dijatuhkan kepada korporasi yang melakukan tindak pidana adalah… (Soal Tambahan: Pidana Tambahan Bagi Korporasi)",
+                options: { A: "Pasal 118 UU 1/2023", B: "Pasal 119 UU 1/2023", C: "Pasal 120 UU 1/2023", D: "Pasal 121 UU 1/2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Pasal dalam Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana (KUHP Baru) yang mengatur mengenai pedoman pemidanaan yang wajib dipertimbangkan oleh hakim sebelum menjatuhkan hukuman, dengan tujuan memastikan putusan yang dijatuhkan bersifat adil, konsisten, dan mempertimbangkan keadaan spesifik suatu perkara adalah… ( Soal Tambahan : pedoman pemidanaan yang wajib dipertimbangkan oleh Hakim)",
+                options: { A: "Pasal 54 ayat (1) UU 1/2023", B: "Pasal 55 ayat (1) UU 1/2023", C: "Pasal 56 ayat (1) UU 1/2023", D: "Pasal 57 ayat (1) UU 1/2023" },
+                correctAnswer: "A"
+            },
+            {
+                text: "Ketentuan yang mengatur tentang konsep pemaafan hakim (rechterlijk pardon), yang memberikan kewenangan kepada hakim untuk tidak menjatuhkan pidana atau tindakan kepada terdakwa yang terbukti bersalah demi mempertimbangkan segi keadilan dan kemanusiaan, diatur dalam...",
+                options: { A: "Pasal 54 ayat (1) UU No. 1 Tahun 2023", B: "Pasal 54 ayat (2) UU No. 1 Tahun 2023", C: "Pasal 55 ayat (1) UU No. 1 Tahun 2023", D: "Pasal 55 ayat (2) UU No. 1 Tahun 2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Undang-Undang yang mengatur mengenai Grasi di Indonesia adalah...",
+                options: { A: "UU No. 22 Tahun 2002 juncto UU No. 5 Tahun 2010", B: "UU No. 5 Tahun 2002 juncto UU No. 22 Tahun 2010", C: "UU No. 22 Tahun 2004 juncto UU No. 5 Tahun 2014", D: "UU No. 12 Tahun 2002 juncto UU No. 8 Tahun 2010" },
+                correctAnswer: "A"
+            },
+            {
+                text: "Presiden selaku kepala negara memiliki hak prerogatif untuk memberikan grasi kepada seorang terpidana. Pernyataan yang paling tepat mengenai esensi dan dampak dari pemberian grasi tersebut adalah… (Soal Tambahan : Bentuk Grasi & Syarat Pengajuan Grasi)",
+                options: {
+                    A: "Grasi menghapuskan kesalahan terpidana sekaligus membatalkan seluruh pelaksanaan pidana yang telah dijatuhkan oleh pengadilan.",
+                    B: "Grasi hanya mengubah bentuk atau durasi hukuman terpidana, namun status kesalahan terpidana secara hukum tetap ada.",
+                    C: "Grasi merupakan bentuk pengampunan yang membuktikan bahwa terpidana tidak bersalah dan memulihkan nama baiknya secara hukum.",
+                    D: "Grasi menghilangkan kesalahan terpidana sehingga ia dapat dibebaskan demi hukum tanpa sisa hukuman."
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Pasal dalam UUD 1945 yang menyatakan bahwa “Presiden memberi grasi dan rehabilitasi dengan memperhatikan pertimbangan Mahkamah Agung (MA)” adalah...",
+                options: { A: "Pasal 14 ayat (1) UUD 1945", B: "Pasal 14 ayat (2) UUD 1945", C: "Pasal 15 UUD 1945", D: "Pasal 16 UUD 1945" },
+                correctAnswer: "A"
+            },
+            {
+                text: "Berdasarkan Pasal 14 ayat (2) UUD 1945, Presiden memiliki wewenang untuk memberikan amnesti. Namun, dalam melaksanakan wewenang tersebut, Presiden tidak dapat memutuskannya sendiri melainkan wajib memperhatikan pertimbangan dari lembaga negara lain. Lembaga negara yang dimaksud adalah...",
+                options: { A: "Mahkamung (MA)", B: "Dewan Perwakilan Rakyat (DPR)", C: "Majelis Permusyawaratan Rakyat (MPR)", D: "Dewan Perwakilan Daerah (DPD)", E: "Mahkamah Konstitusi (MK)" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Berdasarkan teks di atas, apa konsekuensi yuridis yang terjadi ketika seseorang atau sekelompok orang mendapatkan amnesti dari Presiden?",
+                options: {
+                    A: "Kesalahan pidana mereka dimaafkan, namun catatan kriminal (status hukum) tetap melekat pada diri mereka.",
+                    B: "Tindak pidana yang dilakukan dianggap tidak pernah ada dan semua akibat hukumnya dihapus, sehingga status hukum mereka kembali bersih.",
+                    C: "Hukuman pidana mereka dikurangi sebagian, tetapi mereka tetap harus menjalani sisa masa tahanan yang ada.",
+                    D: "Pelaksanaan hukuman mereka ditunda untuk sementara waktu hingga batas waktu yang ditentukan oleh kepala negara."
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam sistem ketatanegaraan Indonesia, Presiden memiliki hak prerogatif untuk menghentikan atau menghapuskan proses penuntutan pidana terhadap seorang atau sekelompok tersangka sebelum adanya putusan pengadilan yang berkekuatan hukum tetap (inkracht). Hak prerogatif yang dimaksud adalah… (Soal: Tambahan Jelaskan terkait Abolisi)",
+                options: { A: "Amnesti", B: "Abolisi", C: "Grasi", D: "Rehabilitasi" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Berdasarkan ketentuan tata negara, Presiden tidak dapat memutuskan pemberian amnesti dan abolisi secara mutlak secara sepihak. Hal yang wajib dilakukan oleh Presiden sebelum menerbitkan keputusan abolisi adalah...",
+                options: {
+                    A: "Meminta persetujuan Mahkamah Agung demi kepastian hukum yang mengikat.",
+                    B: "Meminta dan mendengarkan pertimbangan dari Dewan Perwakilan Rakyat (DPR).",
+                    C: "Menunggu keputusan final dari Jaksa Agung terkait status hukum yang bersangkutan.",
+                    D: "Mengadakan pemungutan suara (voting) terbuka di tingkat Majelis Permusyawaratan Rakyat (MPR)."
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Tindakan pemulihan nama baik, kehormatan, dan hak-hak seseorang yang diberikan setelah adanya putusan hakim atau karena kasus salah tangkap, yang pemenuhannya diajukan dan diputuskan oleh Mahkamah Agung (MA), disebut dengan...",
+                options: { A: "Restitusi", B: "Rehabilitasi", C: "Amnesti", D: "Abolisi" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Asas Nasional Aktif dalam Kitab Undang-Undang Hukum Pidana (KUHP) mengatur bahwa aturan hukum pidana Indonesia berlaku bagi setiap Warga Negara Indonesia (WNI) yang melakukan tindak pidana di luar wilayah Indonesia. Ketentuan mengenai asas tersebut saat ini diatur dalam… (Soal Tambahan: Jelaskan Asas Perlindungan Pim-Rup-Dag-WNI (Nasional Pasif))",
+                options: { A: "Pasal 2 UU No. 1 Tahun 2023", B: "Pasal 3 UU No. 1 Tahun 2023", C: "Pasal 4 UU No. 1 Tahun 2023", D: "Pasal 5 UU No. 1 Tahun 2023" },
+                correctAnswer: "D"
+            },
+            {
+                text: "Pasal di dalam Kitab Undang-Undang Hukum Pidana (KUHP) baru yang mengatur tentang pengakuan dan pemberlakuan hukum yang hidup di dalam masyarakat (living law atau hukum adat) sebagai dasar pemidanaan, meskipun perbuatan tersebut tidak diatur secara tertulis di dalam undang-undang, adalah… (Soal Tambahan: “TePUH-HU-Per”)",
+                options: { A: "Pasal 1 UU No. 1 Tahun 2023", B: "Pasal 2 UU No. 1 Tahun 2023", C: "Pasal 3 UU No. 1 Tahun 2023", D: "Pasal 4 UU No. 1 Tahun 2023" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam Kitab Undang-Undang Hukum Pidana (KUHP) yang baru, terdapat pembaharuan hukum yang signifikan. Subjek hukum dipertegas melingkupi manusia dan korporasi, serta konsep pemidanaan menggunakan sistem jalur ganda (double track system) yang memisahkan antara sanksi \"Pidana\" dan \"Tindakan\". Selain itu, pidana mati kini diletakkan sebagai opsi paling akhir dengan koridor masa percobaan demi menghormati hak hidup manusia yang masih bisa diperbaiki. Ketentuan mengenai pemisahan jenis sanksi (pidana dan tindakan) serta alternatif pidana mati ini diatur dalam...",
+                options: { A: "Pasal 10 UU No. 1 Tahun 2023", B: "Pasal 12 UU No. 1 Tahun 2023", C: "Pasal 65 UU No. 1 Tahun 2023", D: "Pasal 100 UU No. 1 Tahun 2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Kitab Undang-Undang Hukum Pidana (KUHP) yang baru mengatur mengenai mekanisme pelaksanaan atau eksekusi pidana denda setelah putusan pengadilan berkekuatan hukum tetap. Ketentuan mengenai eksekusi pidana denda tersebut secara spesifik diatur dalam… (Soal Tambahan : BATAS – ANGSUR – SITA)",
+                options: { A: "Pasal 78 UU No. 1 Tahun 2023", B: "Pasal 79 UU No. 1 Tahun 2023", C: "Pasal 80 UU No. 1 Tahun 2023", D: "Pasal 81 UU No. 1 Tahun 2023" },
+                correctAnswer: "D"
+            },
+            {
+                text: "Jika dalam persidangan terbukti bahwa salah satu unsur (baik subjektif maupun objektif) dari pasal yang didakwakan tidak terpenuhi, tindakan apa yang wajib diambil oleh hakim dalam pertimbangan hukumnya? (Soal Tambahan : Jelaskan Unsur Subjektif dan Objektif)",
+                options: {
+                    A: "Tetap menjatuhkan pidana karena mayoritas unsur tindak pidana sudah terpenuhi.",
+                    B: "Menjatuhkan putusan bebas (vrijspraak) atau lepas (onslag) karena seluruh unsur wajib terpenuhi secara kumulatif.",
+                    C: "Menunda putusan sampai jaksa penuntut umum berhasil melengkapi unsur yang kurang.",
+                    D: "Mengalihkan dakwaan ke pasal lain secara sepihak tanpa memedulikan surat dakwaan awal."
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Jika dalam suatu persidangan pidana terbukti bahwa unsur objektif (perbuatan melawan hukum yang menimbulkan akibat) tidak terpenuhi, maka putusan yang dijatuhkan oleh hakim adalah...",
+                options: {
+                    A: "Putusan Lepas (Ontslag van alle rechtsvervolging)",
+                    B: "Putusan Bebas (Vrijspraak)",
+                    C: "Putusan Pemidanaan (Veroordeling)",
+                    D: "Putusan Tidak Dapat Diterima (Niet Ontvankelijk Verklaard)"
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam suatu persidangan, terdakwa terbukti secara fisik melakukan pengrusakan barang milik orang lain. Namun, berdasarkan pemeriksaan medis, terdakwa diketahui mengidap gangguan jiwa berat (skizofrenia) saat kejadian, sehingga tidak memiliki sikap batin yang jahat (mens rea). Berdasarkan Pasal 191 ayat (2) KUHAP, jenis putusan apa yang harus dijatuhkan oleh hakim?",
+                options: {
+                    A: "Putusan Bebas (Vrijspraak)",
+                    B: "Putusan Lepas dari Segala Tuntutan Hukum (Onslag van alle rechtsvervolging)",
+                    C: "Putusan Pemidanaan (Penjara)",
+                    D: "Putusan Tidak Menerima Tuntutan (Niet Ontvankelijk Verklaard)"
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Jika dalam suatu persidangan Hakim menemukan bahwa perbuatan pidana secara nyata terjadi (objektif terpenuhi), namun pelaku melakukannya di bawah paksaan atau karena gangguan jiwa (subjektif tidak terpenuhi), maka putusan yang tepat bagi pelaku adalah...",
+                options: {
+                    A: "Dipidana penjara karena perbuatannya terbukti ada.",
+                    B: "Tidak bisa dipidana karena tidak memiliki kesalahan secara subjektif.",
+                    C: "Tetap dipidana tetapi hukumannya dikurangi setengah.",
+                    D: "Dinyatakan bersalah karena unsur objektif sudah terpenuhi."
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Asas Cogitationis poenam nemo patitur mengadopsi prinsip hukum bahwa...",
+                options: {
+                    A: "Seseorang hanya bisa dihukum jika ada aturan tertulis yang mengaturnya.",
+                    B: "Tidak ada seorang pun yang dapat dipidana karena apa yang dipikirkannya atau karena niatnya semata.",
+                    C: "Hukum harus ditegakkan demi keadilan bagi seluruh masyarakat tanpa tebang pilih.",
+                    D: "Every person is considered innocent before there is a court decision with permanent legal force."
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam suatu persidangan, terdakwa terbukti secara fisik melakukan pengrusakan barang milik orang lain. Namun, berdasarkan pemeriksaan medis, terdakwa diketahui mengidap gangguan jiwa berat (skizofrenia) saat kejadian, sehingga tidak memiliki sikap batin yang jahat (mens rea). Berdasarkan Pasal 191 ayat (2) KUHAP, jenis putusan apa yang harus dijatuhkan oleh hakim?",
+                options: {
+                    A: "Putusan Bebas (Vrijspraak)",
+                    B: "Putusan Lepas dari Segala Tuntutan Hukum (Onslag van alle rechtsvervolging)",
+                    C: "Putusan Pemidanaan (Penjara)",
+                    D: "Putusan Tidak Menerima Tuntutan (Niet Ontvankelijk Verklaard)"
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Seorang terdakwa didakwa melakukan pembunuhan. Namun, hasil visum membuktikan bahwa korban meninggal murni karena serangan jantung dan tidak ada perbuatan merampas nyawa dari terdakwa. Berdasarkan Pasal 191 ayat (1) KUHAP, amar putusan apa yang wajib dijatuhkan oleh hakim?",
+                options: {
+                    A: "Putusan Lepas dari Segala Tuntutan Hukum (Onslag van Alle Rechtsverrunge)",
+                    B: "Putusan Bebas (Vrijspraak)",
+                    C: "Putusan Pemidanaan",
+                    D: "Putusan Tidak Dapat Diterima (Niet Ontvankelijke Verklaard)"
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Unsur dalam tindak pidana yang berkaitan dengan sikap batin dan mental pelaku untuk menentukan ada tidaknya kesalahan (mens rea) disebut dengan unsur…",
+                options: { A: "Objektif", B: "Subjektif", C: "Formil", D: "Materil" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Sisi lahiriah dari suatu perbuatan pidana (dilakukan oleh pelaku serta keadaan-keadaan di luar diri pelaku) yang meliputi perbuatan materiel, akibat yang dilarang, dan keadaan yang menyertai perbuatan tersebut dinamakan...",
+                options: { A: "Unsur Subjektif", B: "Unsur Objektif", C: "Unsur Melawan Hukum", D: "Unsur Pertanggungjawaban" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam hukum pidana, dikenal adanya alasan penghapus pidana yang dibagi menjadi alasan pembenar (rechtvaardigingsgrond) dan alasan pemaaf (schuldentschuldigingsgrond). Manakah pernyataan berikut yang secara tepat mendefinisikan karakteristik dan esensi dari “alasan pembenar”?",
+                options: {
+                    A: "Alasan yang menghapuskan kesalahan terdakwa karena adanya faktor psikologis, di mana sifat perbuatannya tetap melanggar hukum namun pelakunya tidak dapat dipidana karena alasan subjektif.",
+                    B: "Alasan yang menghapuskan sifat melawan hukumnya perbuatan (perbuatan yang dilakukan dianggap benar/dibenarkan oleh hukum), di mana alasan ini bersifat objektif dan melekat pada perbuatannya.",
+                    C: "Alasan yang memberikan pengampunan hukum secara khusus dari presiden kepada terpidana setelah adanya putusan pengadilan yang berkekuatan hukum tetap (inkracht).",
+                    D: "Alasan yang meniadakan tuntutan jaksa penuntut umum karena perkara tersebut telah kedaluwarsa menurut ketentuan undang-undang yang berlaku."
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam hukum pidana terkait kasus penyalahgunaan narkotika, seorang pecandu atau pengguna secara objektif telah memenuhi unsur perbuatan (mengonsumsi/memiliki untuk diri sendiri) dan secara subjektif memiliki unsur kesengajaan (tahu dan mau). Namun, mengapa hakim diberikan wewenang untuk menjatuhkan putusan berupa tindakan rehabilitasi medis dan sosial alih-alih hukuman penjara?",
+                options: {
+                    A: "Karena unsur subjektif (kesengajaan) dalam diri pengguna dianggap gugur secara otomatis akibat adanya daya paksa (overmacht) dari efek ketergantungan zat adiktif.",
+                    B: "Karena secara objektif perbuatan mengonsumsi narkoba untuk diri sendiri bukan merupakan suatu tindak pidana, melainkan murni pelanggaran administrasi kesehatan.",
+                    C: "Karena undang-undang memandang pecandu sebagai korban yang sakit secara medis, sehingga hukum pidana bergeser dari sekadar menghukum menjadi memulihkan melalui wajib rehabilitasi.",
+                    D: "Karena wewenang hakim untuk merehabilitasi hanya berlaku jika pengguna terbukti tidak mengetahui atau tidak menghendaki sama sekali bahwa barang yang dikonsumsinya adalah narkotika."
+                },
+                correctAnswer: "C"
+            },
+            {
+                text: "Dalam hukum pidana, terdapat alasan-alasan yang dapat membebaskan seorang pelaku dari jerat hukum. Di antaranya terdapat alasan yang menghapuskan unsur kesalahan pelaku tindak pidana—di mana perbuatannya tetap dinyatakan sebagai sesuatu yang dilarang dan melawan hukum, tetapi pelakunya tidak dapat dimintai pertanggungjawaban karena alasan tersebut bersifat subjektif (melekat pada kondisi batin atau pribadi orangnya). Konsep ini dalam hukum pidana dikenal dengan istilah...",
+                options: { A: "Alasan Pembenar (Rechtvaardigingsgrond)", B: "Alasan Pemaaf (Schuldentsculdigingsgrond)", C: "Alasan Penghapus Penuntutan", D: "Alasan Pemberat Pidana" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Hak Asasi Manusia (HAM) yang bersifat non-derogable rights merupakan hak-hak dasar yang tidak dapat dikurangi atau dicabut oleh siapa pun dan dalam keadaan apa pun, termasuk dalam keadaan darurat. Di dalam konstitusi negara Republik Indonesia, ketentuan mengenai hak-hak yang tidak dapat dikurangi dalam keadaan apa pun ini diatur secara tegas dalam… (Soal Tambahan : \"HiTiPi-RaBu-PriSu\" (hak asasi manusia yang bersifat absolut dan tidak dapat dikurangi, dibatasi, atau ditangguhkan pemenuhannya oleh negara))",
+                options: { A: "Pasal 28A UUD 1945", B: "Pasal 28E ayat (3) UUD 1945", C: "Pasal 28G ayat (1) UUD 1945", D: "Pasal 28I ayat (1) UUD 1945" },
+                correctAnswer: "D"
+            },
+            {
+                text: "Pasal dalam UU No. 1/2023 yang secara khusus mengatur mengenai ketentuan tindak pidana percobaan dalam melakukan suatu kejahatan adalah… (Soal Tambahan : Unsur Percobaan: Ni - Pe - Ga)",
+                options: { A: "Pasal 15 ayat (1) dan (2) UU 1/2023", B: "Pasal 16 ayat (1) dan (2) UU 1/2023", C: "Pasal 17 ayat (1) dan (2) UU 1/2023", D: "Pasal 18 ayat (1) dan (2) UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Aturan hukum pidana dalam perundang-undangan Indonesia berlaku bagi setiap orang—baik warga negara Indonesia maupun warga negara asing— yang melakukan tindak pidana di dalam wilayah Negara Kesatuan Republik Indonesia (NKRI). Ketentuan ini merupakan perwujudan dari Asas Wilayah (Teritorial) yang diatur di dalam… (Soal Tambahan: Jelaskan Asas Teritorial)",
+                options: { A: "Pasal 2 UU Nomor 1 Tahun 2023", B: "Pasal 3 UU Nomor 1 Tahun 2023", C: "Pasal 4 UU Nomor 1 Tahun 2023", D: "Pasal 5 UU Nomor 1 Tahun 2023" },
+                correctAnswer: "A"
+            },
+            {
+                text: "Seorang kasir di sebuah toko swalayan, akibat terlilit utang judi online, memutuskan untuk mengambil uang dari mesin kasir sebesar Rp200.000 setiap hari menjelang toko tutup. Perbuatan ini ia lakukan secara konsisten setiap hari selama satu minggu penuh dengan modus operandi yang sama, memanfaatkan celah kelengahan saat proses cloting laporan harian. Berdasarkan yurisprudensi hukum pidana, rangkaian perbuatan kasir tersebut dapat dikategorikan sebagai perbuatan berlanjut (voortgezette handeling) karena telah memenuhi tiga syarat kumulatif, yaitu… ( Soal Tambahan : Jelaskan Menurut yurisprudensi, untuk menentukan adanya perbuatan berlanjut harus memenuhi 3 syarat: N - I - S )",
+                options: {
+                    A: "Adanya satu niat jahat yang mengawali, objek hukum yang dirugikan sama, dan dilakukan dalam kurun waktu yang tidak berselang lama.",
+                    B: "Perbuatan-perbuatan yang dilakukan harus sejenis, adanya satu keputusan kehendak (niat yang sama), dan tenggang waktu antarperbuatan tidak terlalu lama.",
+                    C: "Adanya kesamaan niat/kehendak, tindak pidana yang dilakukan termasuk dalam satu bab dalam KUHP, dan dilakukan secara berturut-turut tanpa jeda hari.",
+                    D: "Perbuatan tersebut menimbulkan kerugian yang sejenis, didasari oleh satu kehendak, dan dilakukan dalam waktu yang sesingkat-singkatnya."
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Asas nasional aktif (atau asas personalitas) menyatakan bahwa ketentuan hukum pidana Indonesia berlaku bagi setiap Warga Negara Indonesia (WNI) yang melakukan tindak pidana di luar wilayah Negara Kesatuan Republik Indonesia (NKRI). Ketentuan mengenai asas nasional aktif ini diatur dalam…",
+                options: { A: "Pasal 4 UU No. 1 Tahun 2023", B: "Pasal 5 UU No. 1 Tahun 2023", C: "Pasal 6 UU No. 1 Tahun 2023", D: "Pasal 8 UU No. 1 Tahun 2023" },
+                correctAnswer: "D"
+            },
+            {
+                text: "Andi adalah seorang Warga Negara Indonesia (WNI) yang melakukan suatu perbuatan di luar negeri. Berdasarkan ketentuan Pasal 8 UU Nomor 1 Tahun 2023 (KUHP Baru) tentang Asas Nasional Aktif dan syarat double criminality, manakah pernyataan berikut yang paling tepat mengenai berlakunya hukum pidana Indonesia terhadap Andi? (Soal Tambahan: Jelaskan Asas Double Criminality)",
+                options: {
+                    A: "Andi dapat langsung dituntut and dipidana di Indonesia tanpa perlu melihat apakah perbuatan tersebut diatur sebagai tindak pidana atau tidak di negara tempat kejadian perkara.",
+                    B: "Jika perbuatan Andi di luar negeri hanya diancam dengan pidana denda maksimal Kategori III (Rp50.000.000), maka ketentuan pidana Indonesia tetap berlaku dan Andi wajib diadili di pengadilan Indonesia.",
+                    C: "Ketentuan hukum pidana Indonesia tidak dapat diberlakukan sama sekali kepada Andi jika ia baru resmi mengubah kewarganegaraannya menjadi WNI setelah tindak pidana tersebut selesai dilakukan.",
+                    D: "Andi tetap dapat dituntut di Indonesia meskipun ia baru menjadi WNI setelah perbuatan dilakukan (asalkan perbuatan tersebut merupakan tindak pidana di negara asal), namun ia tidak dapat dijatuhi pidana mati jika hukum di negara tempat kejadian tidak mengancam perbuatan itu dengan pidana mati."
+                },
+                correctAnswer: "D"
+            },
+            {
+                text: "Pasal dalam Undang-Undang Nomor 1 Tahun 2023 yang mengatur tentang penerapan asas universal—di mana ketentuan pidana Indonesia berlaku bagi setiap orang yang melakukan tindak pidana di luar wilayah Indonesia, yang penuntutannya diambil alih oleh Pemerintah Indonesia berdasarkan suatu perjanjian internasional—adalah… (Jelaskan Asas Universal)",
+                options: { A: "Pasal 4 UU 1/2023", B: "Pasal 5 UU 1/2023", C: "Pasal 6 UU 1/2023", D: "Pasal 7 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Pasal dalam UU No. 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana yang mengatur mengenai perbarengan tindak pidana—atau yang sering disebut concursus idealis—serta memberikan pedoman bagi hakim dalam menjatuhkan hukuman apabila satu perbuatan melanggar lebih dari satu aturan pidana adalah… (Jelaskan SATU PERBUATAN → SATU PIDANA (CONSURSUS IDEALIS)",
+                options: { A: "Pasal 123 UU 1/2023", B: "Pasal 124 UU 1/2023", C: "Pasal 125 UU 1/2023", D: "Pasal 126 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Jika seseorang melakukan beberapa perbuatan yang masing-masing merupakan kejahatan atau pelanggaran, di mana perbuatan-perbuatan tersebut saling berhubungan sedemikian rupa sehingga harus dipandang sebagai satu perbuatan berlanjut (voortgezette handeling), maka hanya dikenakan satu ketentuan pidana. Apabila ketentuan pidana itu berbeda-beda, yang diterapkan adalah pasal yang memuat ancaman pidana pokok yang paling berat. Ketentuan mengenai perbuatan berlanjut tersebut diatur dalam… (Jelaskan: PERBUATAN BERLANJUT (VOORTGEZETTE HANDELING))",
+                options: { A: "Pasal 124 UU No. 1/2023", B: "Pasal 125 UU No. 1/2023", C: "Pasal 126 UU No. 1/2023", D: "Pasal 127 UU No. 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Suatu keadaan di mana seorang pelaku melakukan beberapa tindak pidana yang masing-masing merupakan delik yang berdiri sendiri dan tidak saling berhubungan dikenal dengan istilah concursus realis (perbarengan tindak pidana yang berdiri sendiri). Ketentuan mengenai concursus realis ini diatur di dalam… (Jelaskan: PERBARENGAN TINDAK PIDANA SEJENIS)",
+                options: { A: "Pasal 127 UU Nomor 1 Tahun 2023", B: "Pasal 65 KUHP Lama", C: "Pasal 128 UU Nomor 1 Tahun 2023", D: "Pasal 66 KUHP Lama" },
+                correctAnswer: "A"
+            },
+            {
+                text: "Pasal dalam UU No. 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana yang mengatur mengenai ketentuan perbarengan tindak pidana (concursus realis), khususnya yang melibatkan beberapa tindak pidana yang masing-masing berdiri sendiri dan diancam dengan pidana pokok yang tidak sejenis (bersifat heterogen), adalah… (Jelaskan PERBARENGAN TIDAK SEJENIS)",
+                options: { A: "Pasal 121 UU 1/2023", B: "Pasal 125 UU 1/2023", C: "Pasal 128 UU 1/2023", D: "Pasal 130 UU 1/2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Pasal dalam UU No. 1 Tahun 2023 (KUHP Baru) yang mengatur tentang ketentuan pemidanaan dalam perbarengan tindak pidana (concursus) yang dijatuhi pidana mati atau pidana penjara seumur hidup adalah...",
+                options: { A: "Pasal 127 UU 1/2023", B: "Pasal 128 UU 1/2023", C: "Pasal 129 UU 1/2023", D: "Pasal 130 UU 1/2023" },
+                correctAnswer: "D"
+            },
+            {
+                text: "Mengatur tentang ketentuan Permufakatan Jahat dalam hukum pidana. Pasal ini menetapkan bahwa permufakatan jahat terjadi apabila 2 (dua) orang atau lebih bersepakat untuk melakukan Tindak Pidana, dan tindakan tersebut baru dapat dipidana apabila secara tegas telah ditentukan di dalam undang-undang. Ketentuan tersebut diatur dalam...",
+                options: { A: "Pasal 11 UU Nomor 1 Tahun 2023", B: "Pasal 12 UU Nomor 1 Tahun 2023", C: "Pasal 13 UU Nomor 1 Tahun 2023", D: "Pasal 14 UU Nomor 1 Tahun 2023" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Seorang pengemudi mobil memacu kendaraannya dengan kecepatan sangat tinggi di jalanan pemukiman yang ramai. Ia menyadari dan sempat membayangkan bahwa tindakannya tersebut bisa saja mengakibatkan kecelakaan fatal bagi pejalan kaki. Namun, ia tetap memacu kendaraannya karena merasa sudah sangat mahir menyetir dan berkata dalam hati, \"Ah... paling tidak akan terjadi kecelakaan.\" Dalam hukum pidana, sikap batin pengemudi tersebut merupakan bentuk kealpaan disadari (bewuste schuld) karena… (Soal Tambahan: Jelaskan Bewuste Schuld)",
+                options: {
+                    A: "Pelaku sama sekali tidak mengetahui risiko dari perbuatannya, tetapi tetap melakukannya karena terburu-buru.",
+                    B: "Pelaku menghendaki dan merencanakan akibat buruk tersebut terjadi sejak awal mulanya perbuatan dilakukan.",
+                    C: "Pelaku tahu risikonya dan membayangkan akibat buruk mungkin terjadi, tetapi ia tetap melakukan perbuatannya karena terlalu percaya diri bahwa akibat tersebut tidak akan terjadi.",
+                    D: "Pelaku terpaksa melakukan tindakan berbahaya tersebut karena adanya paksaan atau ancaman dari pihak lain."
+                },
+                correctAnswer: "C"
+            },
+            {
+                text: "Dalam hukum pidana, terdapat bentuk kelalaian di mana pelaku sama sekali tidak membayangkan atau menduga akan timbulnya suatu akibat yang dilarang oleh hukum. Pelaku bertindak tidak berhati-hati, padahal secara objektif ia seharusnya bisa dan wajib menduga risiko yang muncul dari tindakannya tersebut. Bentuk kelalaian ini disebut… (Soal Tambahan: Jelaskan Onbewuste Schuld)",
+                options: { A: "Bewuste schuld", B: "Onbewuste schuld", C: "Dolus premeditatus", D: "Dolus determinatus" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam ranah hukum, terdapat konsep kealpaan berat atau kelalaian besar yang terjadi ketika seseorang bertindak dengan kekuranghati-hatian yang ekstrem, bahkan tidak melakukan tindakan pencegahan dasar yang seharusnya dapat dipikirkan dan dilakukan oleh orang normal untuk menghindari bahaya atau kerugian. Istilah hukum yang paling tepat untuk menggambarkan kondisi tersebut adalah… (Soal Tambahan: Culpa Lata)",
+                options: { A: "Culpa Levis", B: "Culpa Lata", C: "Casus Fortuitus", D: "Dolus Directus" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam doktrin hukum, terdapat tingkatan kelalaian yang merujuk pada kegagalan seseorang untuk menunjukkan kehati-hatian atau kewaspadaan standar yang biasanya dilakukan oleh orang normal, namun bukan merupakan kelalaian yang fatal atau ekstrem. Istilah hukum Latin yang tepat untuk menggambarkan kealpaan ringan ini adalah… (Soal Tambahan: Culpa Levis)",
+                options: { A: "Culpa Lata", B: "Culpa Levis", C: "Casus Fortuitus", D: "Dolus Malus" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam hukum pidana, terdapat bentuk kesengajaan di mana pelaku benar-benar menghendaki dan menyadari secara pasti bahwa perbuatannya akan menimbulkan akibat tertentu yang dilarang oleh hukum. Pelaku memiliki tujuan langsung untuk mencapai hasil dilarang tersebut. Bentuk kesengajaan (kesengajaan sebagai maksud) ini dikenal dengan istilah...",
+                options: { A: "Dolus eventualis", B: "Dolus directus", C: "Dolus indirectus", D: "Culpa lata" },
+                correctAnswer: "B"
+            },
+            {
+                text: "Seorang pelaku memiliki niat utama untuk meledakkan sebuah mobil demi membunuh targetnya yang bernama B. Namun, pelaku menyadari sepenuhnya bahwa ada orang lain, yaitu C, yang berada di dalam mobil tersebut dan pasti akan ikut tewas akibat ledakan tersebut. Meskipun pelaku tidak mengejar kematian C sebagai tujuan utamanya, ia tetap melancarkan aksinya. Dalam hukum pidana, bentuk kesengajaan pelaku terhadap kematian C yang merupakan \"efek samping yang pasti terjadi\" ini disebut...",
+                options: { A: "Dolus Directus", B: "Dolus Eventualis", C: "Dolus Indirectus", D: "Culpa Lata" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Seorang pengemudi mobil memacu kendaraannya dengan kecepatan sangat tinggi di jalanan kota yang padat dan ramai demi mengejar waktu agar tidak terlambat. Pengemudi tersebut sebenarnya sadar dan mengerti bahwa tindakannya sangat berisiko fatal dan mungkin terjadi kecelakaan yang merenggut nyawa orang lain. Namun, ia memilih untuk tidak peduli, tetap nekat, dan menerima risiko tersebut demi tujuannya. Jika ia akhirnya menabrak seorang pejalan kaki hingga tewas, bentuk kesengajaan yang tepat untuk menggambarkan tindakan pelaku adalah...",
+                options: {
+                    A: "Dolus Directus (Kesengajaan sebagai maksud untuk menimbulkan akibat fatal)",
+                    B: "Dolus Eventualis (Kesengajaan yang terjadi karena pelaku sadar akibat buruk mungkin terjadi, tetapi tetap nekat melakukan perbuatan dan tidak memedulikan risikonya)",
+                    C: "Culpa Lata (Kealpaan berat karena murni kelalaian tanpa ada kesadaran sama sekali terhadap risiko)",
+                    D: "Culpa Levis (Kealpaan ringan yang terjadi karena kurangnya hati-hati yang sifatnya sepele)"
+                },
+                correctAnswer: "B"
+            },
+            {
+                text: "Dalam hukum pidana, terdapat situasi di mana pelaku telah memikirkan, mempersiapkan, dan merencanakan tindak pidana secara matang sebelum melaksanakannya, seperti pada kasus pembunuhan berencana. Manakah istilah hukum yang paling tepat untuk menggambarkan bentuk kesengajaan tersebut?",
+                options: { A: "Dolus Determinatus", B: "Dolus Alternativus", C: "Dolus Eventualis", D: "Dolus Premeditatus" },
+                correctAnswer: "D"
+            },
+            {
+                text: "Dalam hukum pidana, terdapat bentuk kesengajaan di mana niat pelaku langsung ditujukan pada sasaran atau objek yang sudah ditentukan secara pasti sejak awal. Sebagai contoh, seorang pelaku secara sadar merencanakan dan menembak si \"A\" hingga tewas, di mana si \"A\" memang merupakan target utama yang ingin dihabisinya.",
+                options: { A: "Dolus Alternativus", B: "Dolus Eventualis", C: "Dolus Determinatus", D: "Dolus Indeterminatus" },
+                correctAnswer: "C"
+            },
+            {
+                text: "Seorang pelaku tindak pidana melemparkan sebuah granat aktif ke tengah kerumunan orang di sebuah pasar malam tanpa memedulikan siapa yang akan menjadi korbannya. Tindakan tersebut mencerminkan adanya kesengajaan yang ditujukan pada objek yang tidak tertentu atau bersifat umum. Di dalam hukum pidana, jenis kesengajaan dengan sasaran tidak spesifik seperti ini dikenal dengan istilah...",
+                options: { A: "Dolus Determinatus", B: "Dolus Indeterminatus", C: "Dolus Alternativus", D: "Dolus Eventualis" },
+                correctAnswer: "B"
+            }
+        ];
+
+        // State Global Aplikasi
+        let userAnswers = {};
+        let doubtfulAnswers = {};
+        let currentQuestionIndex = 0;
+        let totalExamTime = 90 * 60; // 90 Menit dalam hitungan detik
+        let remainingTime = totalExamTime;
+        let timerInterval = null;
+        let startTimeStamp = null;
+
+        const STORAGE_KEY_STATE = "CAT_TRYOUT_STATE_V1";
+
+        const landingPage = document.getElementById('landing-page');
+        const examPage = document.getElementById('exam-page');
+        const resultPage = document.getElementById('result-page');
+        const fileInput = document.getElementById('file-input');
+        const fileStatus = document.getElementById('file-status');
+        const btnStart = document.getElementById('btn-start');
+        const infoTotalSoal = document.getElementById('info-total-soal');
+
+        fileInput.addEventListener('change', handleFileUpload);
+        window.addEventListener('load', checkSavedState);
+
+        // ----------------------------------------------------
+        // PARSER ENGINE: UNTUK MENDUKUNG UPLOAD FILE TAMBAHAN
+        // ----------------------------------------------------
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            fileStatus.innerHTML = `<span class="text-blue-600"><i class="fa-solid fa-spinner fa-spin"></i> Memuat berkas...</span>`;
+
+            if (file.name.endsWith('.docx')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    mammoth.convertToHtml({ arrayBuffer: event.target.result })
+                        .then(function(result) { parseHtmlQuestions(result.value); })
+                        .catch(function(err) { fileStatus.innerHTML = `<span class="text-red-600">Gagal memproses file .docx</span>`; });
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (file.name.endsWith('.txt')) {
+                const reader = new FileReader();
+                reader.onload = function(event) { parseTxtQuestions(event.target.result); };
+                reader.readAsText(file);
+            }
+        }
+
+        function parseHtmlQuestions(htmlContent) {
+            const doc = new DOMParser().parseFromString(htmlContent, 'text/html');
+            const paragraphs = doc.querySelectorAll('p');
+            let parsedQuestions = [];
+            let currentQ = null;
+
+            paragraphs.forEach((p) => {
+                let text = p.innerText ? p.innerText.trim() : p.textContent.trim();
+                if (!text) return;
+                const questionMatch = text.match(/^(\d+)[\.\s]+(.*)/);
+                if (questionMatch) {
+                    if (currentQ && Object.keys(currentQ.options).length > 0) parsedQuestions.push(currentQ);
+                    currentQ = { text: questionMatch[2], options: {}, correctAnswer: null };
+                } else if (currentQ) {
+                    const optionMatch = text.match(/^([A-D])[\.\s]+(.*)/i);
+                    if (optionMatch) {
+                        const key = optionMatch[1].toUpperCase();
+                        currentQ.options[key] = optionMatch[2];
+                        if (p.querySelector('strong') || p.querySelector('b')) currentQ.correctAnswer = key;
+                    } else {
+                        currentQ.text += "<br>" + text;
+                    }
+                }
+            });
+            if (currentQ && Object.keys(currentQ.options).length > 0) parsedQuestions.push(currentQ);
+            if(parsedQuestions.length > 0) {
+                questions = parsedQuestions;
+                infoTotalSoal.innerText = `${questions.length} Soal`;
+                fileStatus.innerHTML = `<span class="text-green-600 font-bold"><i class="fa-solid fa-circle-check"></i> Berhasil memperbarui ${questions.length} soal!</span>`;
+            }
+        }
+
+        function parseTxtQuestions(textData) {
+            const lines = textData.split('\n');
+            let parsedQuestions = [];
+            let currentQ = null;
+            lines.forEach((line) => {
+                let text = line.trim();
+                if (!text) return;
+                const questionMatch = text.match(/^(\d+)[\.\s]+(.*)/);
+                if (questionMatch) {
+                    if (currentQ && Object.keys(currentQ.options).length > 0) parsedQuestions.push(currentQ);
+                    currentQ = { text: questionMatch[2], options: {}, correctAnswer: 'A' };
+                } else if (currentQ) {
+                    const optionMatch = text.match(/^([A-D])[\.\s]+(.*)/i);
+                    if (optionMatch) currentQ.options[optionMatch[1].toUpperCase()] = optionMatch[2];
+                }
+            });
+            if (currentQ && Object.keys(currentQ.options).length > 0) parsedQuestions.push(currentQ);
+            if(parsedQuestions.length > 0) {
+                questions = parsedQuestions;
+                infoTotalSoal.innerText = `${questions.length} Soal`;
+                fileStatus.innerHTML = `<span class="text-green-600 font-bold"><i class="fa-solid fa-circle-check"></i> Berhasil memuat ${questions.length} soal!</span>`;
+            }
+        }
+
+        // ----------------------------------------------------
+        // MANAGEMENT STATE RETENTION (LOCAL STORAGE)
+        // ----------------------------------------------------
+        function saveCurrentState() {
+            const state = {
+                questions: questions,
+                userAnswers: userAnswers,
+                doubtfulAnswers: doubtfulAnswers,
+                currentQuestionIndex: currentQuestionIndex,
+                remainingTime: remainingTime,
+                username: document.getElementById('username').value,
+                startTimeStamp: startTimeStamp
+            };
+            localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(state));
+        }
+
+        function checkSavedState() {
+            const saved = localStorage.getItem(STORAGE_KEY_STATE);
+            if (saved) {
+                try {
+                    const state = JSON.parse(saved);
+                    if (confirm(`Ditemukan sesi ujian terputus atas nama "${state.username}". Ingin melanjutkan posisi terakhir?`)) {
+                        questions = state.questions;
+                        userAnswers = state.userAnswers;
+                        doubtfulAnswers = state.doubtfulAnswers;
+                        currentQuestionIndex = state.currentQuestionIndex;
+                        remainingTime = state.remainingTime;
+                        document.getElementById('username').value = state.username;
+                        startTimeStamp = state.startTimeStamp || new Date().toISOString();
+                        infoTotalSoal.innerText = `${questions.length} Soal`;
+                        startExam(true);
+                    } else {
+                        localStorage.removeItem(STORAGE_KEY_STATE);
+                    }
+                } catch(e) { console.error(e); }
+            }
+        }
+
+        // ----------------------------------------------------
+        // ALUR MEKANISME UTAMA UJIAN
+        // ----------------------------------------------------
+        btnStart.addEventListener('click', () => { startExam(false); });
+
+        function startExam(isRecovered) {
+            const nameInput = document.getElementById('username').value.trim();
+            if (!nameInput) { alert("Silakan masukkan nama Anda."); return; }
+
+            landingPage.classList.add('hidden');
+            examPage.classList.remove('hidden');
+
+            document.getElementById('exam-user-display').innerText = `Peserta: ${nameInput}`;
+
+            if (!isRecovered) {
+                remainingTime = 90 * 60;
+                userAnswers = {};
+                doubtfulAnswers = {};
+                currentQuestionIndex = 0;
+                startTimeStamp = new Date().toISOString();
+                saveCurrentState();
+            }
+
+            initNavGrid();
+            renderQuestion();
+            startTimer();
+            initSecurityListeners();
+        }
+
+        function initNavGrid() {
+            const grid = document.getElementById('nav-grid');
+            grid.innerHTML = '';
+            questions.forEach((_, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `nav-item-${idx}`;
+                btn.innerText = idx + 1;
+                btn.className = getNavButtonClass(idx);
+                btn.onclick = () => { currentQuestionIndex = idx; renderQuestion(); };
+                grid.appendChild(btn);
+            });
+        }
+
+        function getNavButtonClass(idx) {
+            let base = "h-11 w-11 rounded-xl font-bold text-sm flex items-center justify-center transition border cursor-pointer ";
+            if (idx === currentQuestionIndex) base += "ring-2 ring-offset-2 ring-blue-600 ";
+            if (doubtfulAnswers[idx]) return base + "bg-amber-400 border-amber-500 text-white";
+            if (userAnswers[idx]) return base + "bg-blue-600 border-blue-700 text-white";
+            return base + "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200";
+        }
+
+        function renderQuestion() {
+            if (questions.length === 0) return;
+            const q = questions[currentQuestionIndex];
+
+            document.getElementById('current-question-num').innerText = currentQuestionIndex + 1;
+            document.getElementById('question-text').innerHTML = q.text;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            Object.keys(q.options).forEach((key) => {
+                const isSelected = userAnswers[currentQuestionIndex] === key;
+                const optionBox = document.createElement('div');
+                optionBox.onclick = () => { userAnswers[currentQuestionIndex] = key; renderQuestion(); };
+                optionBox.className = `p-4 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-3 ${
+                    isSelected ? 'bg-blue-50 border-blue-600 text-blue-900 font-semibold' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`;
+                optionBox.innerHTML = `
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}">${key}</div>
+                    <div class="flex-1 text-sm md:text-base">${q.options[key]}</div>
+                `;
+                container.appendChild(optionBox);
+            });
+
+            document.getElementById('btn-prev').disabled = currentQuestionIndex === 0;
+            const doubtBtn = document.getElementById('btn-doubt');
+            doubtBtn.className = doubtfulAnswers[currentQuestionIndex] 
+                ? "px-5 py-2.5 bg-amber-400 border border-amber-500 text-white font-semibold rounded-xl transition flex items-center gap-2 cursor-pointer"
+                : "px-5 py-2.5 bg-amber-50 border border-amber-300 text-amber-700 font-semibold rounded-xl hover:bg-amber-100 transition flex items-center gap-2 cursor-pointer";
+
+            initNavGrid();
+            saveCurrentState();
+        }
+
+        function toggleDoubtful() {
+            if (doubtfulAnswers[currentQuestionIndex]) { delete doubtfulAnswers[currentQuestionIndex]; } 
+            else { doubtfulAnswers[currentQuestionIndex] = true; }
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) { currentQuestionIndex++; renderQuestion(); }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) { currentQuestionIndex--; renderQuestion(); }
+        }
+
+        // ----------------------------------------------------
+        // SISTEM TIMING DAN SECURITY ENGINE (HANYA KLIK KANAN)
+        // ----------------------------------------------------
+        function startTimer() {
+            clearInterval(timerInterval);
+            const timerContainer = document.getElementById('timer-container');
+            const timerIcon = document.getElementById('timer-icon');
+            const timerDisplay = document.getElementById('timer');
+
+            timerInterval = setInterval(() => {
+                remainingTime--;
+                let mins = Math.floor(remainingTime / 60);
+                let secs = remainingTime % 60;
+                timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if (remainingTime <= 10 * 60) {
+                    timerContainer.className = "flex items-center gap-3 bg-red-50 px-5 py-2.5 rounded-xl border border-red-300 animate-pulse text-red-600";
+                    timerIcon.className = "fa-solid fa-triangle-exclamation text-xl text-red-500";
+                }
+                if (remainingTime <= 0) { clearInterval(timerInterval); endExam(); }
+            }, 1000);
+        }
+
+        function initSecurityListeners() {
+            document.addEventListener('contextmenu', (e) => e.preventDefault());
+        }
+
+        // ----------------------------------------------------
+        // SKORING AKHIR DAN RINGKASAN HASIL
+        // ----------------------------------------------------
+        function confirmEndExam() {
+            let totalAnswered = Object.keys(userAnswers).length;
+            if (confirm(`Selesai ujian?\nDijawab: ${totalAnswered}\nSisa: ${questions.length - totalAnswered}`)) { endExam(); }
+        }
+
+        function endExam() {
+            clearInterval(timerInterval);
+            let correctCount = 0, wrongCount = 0, emptyCount = 0;
+
+            questions.forEach((q, idx) => {
+                const ans = userAnswers[idx];
+                if (!ans) emptyCount++;
+                else if (ans === q.correctAnswer) correctCount++;
+                else wrongCount++;
+            });
+
+            let score = ((correctCount / questions.length) * 100).toFixed(1);
+            localStorage.removeItem(STORAGE_KEY_STATE);
+
+            examPage.classList.add('hidden');
+            resultPage.classList.remove('hidden');
+
+            document.getElementById('res-nama').innerText = document.getElementById('username').value;
+            document.getElementById('res-tanggal').innerText = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            let usedTime = (90 * 60) - remainingTime;
+            document.getElementById('res-durasi').innerText = `${Math.floor(usedTime / 60)} menit ${usedTime % 60} detik`;
+            document.getElementById('res-nilai').innerText = score;
+            document.getElementById('res-benar').innerText = correctCount;
+            document.getElementById('res-salah').innerText = wrongCount;
+            document.getElementById('res-kosong').innerText = emptyCount;
+
+            renderReviewSection();
+        }
+
+        function renderReviewSection() {
+            const container = document.getElementById('review-container');
+            container.innerHTML = '';
+
+            questions.forEach((q, idx) => {
+                const uAns = userAnswers[idx];
+                const cAns = q.correctAnswer;
+                const isCorrect = uAns === cAns;
+
+                const box = document.createElement('div');
+                box.className = `p-5 rounded-2xl border-2 ${isCorrect ? 'bg-green-50/50 border-green-200' : 'bg-red-50/50 border-red-200'}`;
+
+                let optionsHtml = '';
+                Object.keys(q.options).forEach((k) => {
+                    let isKeyCorrect = k === cAns;
+                    let isKeyUser = k === uAns;
+                    let textStyle = isKeyCorrect ? 'text-green-700 font-bold' : (isKeyUser ? 'text-red-700 line-through' : 'text-slate-600');
+                    optionsHtml += `
+                        <div class="text-sm py-1 border-b border-slate-100 flex items-start gap-2 ${textStyle}">
+                            <strong>${k}.</strong> <span>${q.options[k]}</span>
+                            ${isKeyCorrect ? '<span class="text-xs bg-green-200 text-green-800 px-1.5 py-0.5 rounded font-bold">Kunci</span>':''}
+                            ${isKeyUser && !isCorrect ? '<span class="text-xs bg-red-200 text-red-800 px-1.5 py-0.5 rounded font-bold">Pilihan Anda</span>':''}
+                        </div>`;
+                });
+
+                box.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold bg-slate-200 px-2.5 py-1 rounded">SOAL ${idx + 1}</span>
+                        <span class="text-xs font-bold ${isCorrect ? 'text-green-600':'text-red-600'}">${isCorrect ? 'BENAR':'SALAH / KOSONG'}</span>
+                    </div>
+                    <p class="text-slate-800 font-medium mb-3">${q.text}</p>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">${optionsHtml}</div>`;
+                container.appendChild(box);
+            });
+        }
+
+        function downloadJsonReport() {
+            const dataReport = {
+                nama: document.getElementById('res-nama').innerText,
+                skor: document.getElementById('res-nilai').innerText,
+                waktu: document.getElementById('res-durasi').innerText
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataReport, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", `Hasil_CAT_${dataReport.nama}.json`);
+            a.click();
+        }
+
+        function restartApp() { window.location.reload(); }
+    </script>
+
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            #printable-area { border: none !important; box-shadow: none !important; width: 100% !important; }
+        }
+    </style>
+</body>
+</html>
